@@ -5,95 +5,48 @@ Users upload photos of rooms/spaces they need to clean, swipe through cleaning c
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+## 🌐 Live Production Deployment
 
-```
-   Client (Web SPA & Mobile-first)
-        │
-   [React 19 + TypeScript + Tailwind CSS + Lucide Icons]
-        │
-        ▼ HTTPS / WSS
-   [FastAPI Backend Application (Python 3.12)]
-   ├── Security: Argon2id Hashing + JWT (Access & Refresh Tokens)
-   ├── Matching Engine & Feed Recommendation
-   ├── WebSocket 1-on-1 Real-time Body-Doubling Chat
-   └── Media Storage Provider (Local dev / S3 abstraction)
-        │
-        ▼ asyncpg
-   [PostgreSQL Database (SQLAlchemy 2.0 Async + Alembic Migrations)]
-```
-
-- **Backend:** Python 3.12, FastAPI, SQLAlchemy 2 (asyncpg), Alembic, Pydantic V2, Argon2-cffi, PyJWT, WebSockets.
-- **Frontend:** React + TypeScript + Vite, Tailwind CSS, Web Audio API, Canvas Confetti.
-- **Database:** PostgreSQL (with indexed UUID primary keys, JSONB preferences, unique pairwise match constraints).
+- **Application URL:** [https://adhdo.167-86-68-161.sslip.io](https://adhdo.167-86-68-161.sslip.io)
+- **Interactive API Documentation:** [https://adhdo.167-86-68-161.sslip.io/docs](https://adhdo.167-86-68-161.sslip.io/docs)
+- **Health Check:** [https://adhdo.167-86-68-161.sslip.io/health](https://adhdo.167-86-68-161.sslip.io/health)
 
 ---
 
-## ⚡ Quick Start
+## 🏗️ Architecture & Server Isolation
 
-### 1. Database & Backend Setup
+The application runs in completely isolated Docker containers on the Contabo VPS alongside existing workloads (e.g. `ai-backoffice`):
 
-Ensure PostgreSQL is running locally on port `5432` with database `adhdo_db` (or run `docker compose up -d db`).
-
-```bash
-cd backend
-
-# 1. Activate Virtual Environment
-# Windows:
-.\venv\Scripts\Activate.ps1
-# Linux/macOS:
-source venv/bin/activate
-
-# 2. Apply Alembic Migrations
-alembic upgrade head
-
-# 3. Seed Realistic ADHD Cleaning Challenges
-python scripts/seed_demo_data.py
-
-# 4. Start the FastAPI Development Server
-uvicorn app.main:app --reload --port 8000
-```
-- API Docs: `http://localhost:8000/docs`
-- Health check: `http://localhost:8000/health`
-
-### 2. Frontend Setup
-
-```bash
-cd frontend
-
-# Install dependencies (if not already installed)
-npm install
-
-# Start Vite Development Server
-npm run dev
-```
-- Web Application: `http://localhost:5173`
+| Component | Existing App (`ai-backoffice`) | ADHDo (`adhdo`) |
+| :--- | :--- | :--- |
+| **Directory** | `/root/app` | `/root/adhdo` |
+| **Database** | `app-postgres-1` (port 5432/5433) | `adhdo-postgres` (isolated network) |
+| **Backend** | `app-backend-1` (port 8000) | `adhdo-backend` (internal port 8010) |
+| **Frontend** | `app-frontend-1` (port 3000) | `adhdo-frontend` (internal port 3010) |
+| **SSL / Domain** | `https://167-86-68-161.sslip.io` | `https://adhdo.167-86-68-161.sslip.io` |
 
 ---
 
-## 🧪 Running Automated Tests
+## 🚀 GitHub Actions CI/CD Automation
 
-Run the full async test suite against PostgreSQL:
+Automated pipeline configured in [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml).
 
-```bash
-cd backend
-.\venv\Scripts\pytest -v
-```
+### Enabling Automated Deployments:
+In GitHub, navigate to **Settings > Secrets and variables > Actions** in the `DomcaStarek/ADHDo` repository and add:
+- **`SSH_PRIVATE_KEY`**: The content of your `~/.ssh/id_ed25519` private key.
+- **`SERVER_HOST`**: `167.86.68.161` *(Optional, defaults to this host)*.
+- **`SERVER_USER`**: `root` *(Optional, defaults to root)*.
 
-All test cases verify:
-- Argon2 password hashing & JWT token rotation.
-- Challenge creation & photo upload abstraction.
-- Feed discovery excluding swiped/self/blocked users.
-- Mutual like detection triggering instant Matches.
-- Direct messaging and block/unmatch safety flows.
+Every `git push origin main` will:
+1. Run backend tests (`pytest`).
+2. Verify frontend compilation (`npm run build`).
+3. Deploy updates zero-downtime to the server via `/root/adhdo/scripts/deploy.sh`.
 
 ---
 
-## 📱 Pre-Configured Demo Accounts
+## 📱 Quick Demo Testing
 
-For instant testing without signing up:
 - **Email:** `test@adhdo.app`
 - **Password:** `Password123!`
-- *(Or click the **"Quick Demo Login"** button on the login screen).*
-
-Maya (`maya@adhdo.app`) has already liked Alex's task in the seed data, so swiping right on Maya's "Studio Glitter Bomb" triggers an immediate **Match & Confetti Celebration**!
+- Or click **"Quick Demo Login"** on the login screen.
+- Swiping right on Maya's *"Studio Glitter Bomb"* triggers an immediate **Mutual Match & Confetti Celebration**!
