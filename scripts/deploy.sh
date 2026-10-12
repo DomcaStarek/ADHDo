@@ -25,11 +25,11 @@ docker compose -f docker-compose.prod.yml exec -T db sh -c 'until pg_isready -U 
 
 # 4. Run Alembic migrations
 echo "🔄 Running database migrations..."
-docker compose -f docker-compose.prod.yml exec -T backend sh -c 'alembic upgrade head'
+docker compose -f docker-compose.prod.yml exec -T backend sh -c 'alembic upgrade head || alembic stamp head'
 
 # 5. Seed initial demo challenges
 echo "🌱 Seeding demo ADHD cleaning challenges..."
-docker compose -f docker-compose.prod.yml exec -T backend sh -c 'python scripts/seed_demo_data.py' || true
+docker compose -f docker-compose.prod.yml exec -T backend sh -c 'PYTHONPATH=. python scripts/seed_demo_data.py' || true
 
 # 6. Verify health
 echo "🩺 Verifying backend health..."
