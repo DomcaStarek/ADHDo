@@ -27,23 +27,6 @@ The application runs in completely isolated Docker containers on the Contabo VPS
 
 ---
 
-## 🚀 GitHub Actions CI/CD Automation
-
-Automated pipeline configured in [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml).
-
-### Enabling Automated Deployments:
-In GitHub, navigate to **Settings > Secrets and variables > Actions** in the `DomcaStarek/ADHDo` repository and add:
-- **`SSH_PRIVATE_KEY`**: The content of your `~/.ssh/id_ed25519` private key.
-- **`SERVER_HOST`**: `167.86.68.161` *(Optional, defaults to this host)*.
-- **`SERVER_USER`**: `root` *(Optional, defaults to root)*.
-
-Every `git push origin main` will:
-1. Run backend tests (`pytest`).
-2. Verify frontend compilation (`npm run build`).
-3. Deploy updates zero-downtime to the server via `/root/adhdo/scripts/deploy.sh`.
-
----
-
 ## 📱 Quick Demo Testing
 
 - **Email:** `test@adhdo.app`
